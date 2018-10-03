@@ -2,9 +2,12 @@ package crypto
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"io"
 	"math/big"
 	"os"
@@ -59,4 +62,32 @@ func toECDSA(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
 		return nil, errors.New("invalid private key")
 	}
 	return priv, nil
+}
+
+/**
+공개키를 가지고서 Address를 만든다.
+ */
+func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
+	pubBytes := FromECDSAPub(&p)
+	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
+}
+
+/**
+공개키를 가지고서 마샬링한 []byte 를 리턴한다.
+ */
+func FromECDSAPub(pub *ecdsa.PublicKey) []byte {
+	if pub == nil || pub.X == nil || pub.Y == nil {
+		return nil
+	}
+	return elliptic.Marshal(S256(), pub.X, pub.Y)
+}
+
+// []byte를 가지고서 입력한 데이터의 []byte를 리턴한다.
+// Keccak256 calculates and returns the Keccak256 hash of the input data.
+func Keccak256(data ...[]byte) []byte {
+	d := sha3.NewKeccak256()
+	for _, b := range data {
+		d.Write(b)
+	}
+	return d.Sum(nil)
 }
