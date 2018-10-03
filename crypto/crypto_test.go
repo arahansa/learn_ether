@@ -39,5 +39,8 @@ func TestPubkeyToAddress(t *testing.T) {
 
 	address := crypto.PubkeyToAddress(public)
 	t.Log("address :: ", address)
+	t.Log("Hex address :: ", address.Hex())
 }
+
+
 
